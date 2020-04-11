@@ -28,7 +28,7 @@ func AuthMiddleware(key string) (*jwt.GinJWTMiddleware, error) {
 		Realm:                 "Blog-server",
 		Key:                   []byte(key),
 		Authenticator:         Authenticator,
-		LoginResponse:         nil,
+		LoginResponse:         LoginResponse,
 		PayloadFunc:           PayloadFunc,
 		LogoutResponse:        nil,
 		RefreshResponse:       nil,

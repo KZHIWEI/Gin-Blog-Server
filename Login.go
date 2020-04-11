@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 func AuthorizeLogin(user *User) (*UserPayLoad , error){
@@ -44,5 +45,14 @@ func RegisterHandler(c *gin.Context){
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "successful register your account","id":id})
+}
 
+func LoginResponse(c *gin.Context,i int,token string,expire time.Time){
+	fmt.Printf("i: %v token: %s\n", i, token)
+	c.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"expire": expire.Format(time.RFC3339),
+		"token":token,
+		"message":"successful login",
+	})
 }
