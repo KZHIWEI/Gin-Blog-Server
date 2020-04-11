@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+
 )
 
 func Authenticator(c *gin.Context) (i interface{}, err error) {
@@ -14,6 +15,11 @@ func Authenticator(c *gin.Context) (i interface{}, err error) {
 	password := loginValues.Password
 	email := loginValues.Email
 
+	payload , err := AuthorizeLogin(loginValues)
+	if err != nil {
+		return nil,err
+	}
+	return payload , nil
 	if (username == "test" && password == "password") || (email == "test@qq.com" && password == "password") {
 		return &UserPayLoad{
 			UserName: username,

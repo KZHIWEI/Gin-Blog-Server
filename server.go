@@ -17,6 +17,7 @@ func LoadEnv() {
 		JwtToken:  os.Getenv("JWT-TOKEN"),
 		DbAddress: os.Getenv("DB-Address"),
 		Port:      os.Getenv("PORT"),
+		DbPassword: os.Getenv("DB-PASSWORD"),
 	}
 }
 
@@ -24,6 +25,7 @@ type Config struct {
 	JwtToken  string
 	DbAddress string
 	Port      string
+	DbPassword string
 }
 
 var GlobalConfig Config
@@ -36,13 +38,11 @@ func main() {
 		panic(err.Error())
 	}
 	r.POST("/login", auth.LoginHandler)
+	r.POST("/register", auth.LoginHandler)
 	api := r.Group("/api")
 	api.Use(auth.MiddlewareFunc())
 	{
 
 	}
-	err = r.Run(GlobalConfig.Port)
-	if err != nil {
-		panic(err.Error())
-	}
+	log.Fatal(r.Run(GlobalConfig.Port))
 }
