@@ -7,7 +7,7 @@ import (
 )
 
 type UserPayLoad struct {
-	id       string
+	id       int
 	UserName string
 	Email    string
 }
@@ -31,8 +31,18 @@ func (user *User) GetHashPassword() (string,error) {
 	passwordHash, err := bcrypt.GenerateFromPassword(bytePassword, bcrypt.DefaultCost)
 	return string(passwordHash),err
 }
-func (user *User) checkPassword(hashedPassword string) error {
+func (user *User) CheckPassword(hashedPassword string) error {
 	bytePassword := []byte(user.Password)
 	byteHashedPassword := []byte(hashedPassword)
-	return bcrypt.CompareHashAndPassword(byteHashedPassword, bytePassword)
+	err := bcrypt.CompareHashAndPassword(byteHashedPassword, bytePassword)
+	if err != nil {
+		return errors.New("incorrect password")
+	}
+	return nil
 }
+
+//func (user *User) FixNullPointer(){
+//	if user.Email == nil {
+//
+//	}
+//}

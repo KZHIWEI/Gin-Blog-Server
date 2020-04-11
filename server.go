@@ -32,13 +32,16 @@ var GlobalConfig Config
 
 func main() {
 	LoadEnv()
+	if err := initSQL();err != nil{
+		panic(err.Error())
+	}
 	r := gin.Default()
 	auth, err := AuthMiddleware(GlobalConfig.JwtToken)
 	if err != nil {
 		panic(err.Error())
 	}
 	r.POST("/login", auth.LoginHandler)
-	r.POST("/register", auth.LoginHandler)
+	r.POST("/register", RegisterHandler)
 	api := r.Group("/api")
 	api.Use(auth.MiddlewareFunc())
 	{

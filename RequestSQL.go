@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"golang.org/x/crypto/bcrypt"
+	"strconv"
 )
 
 var SqlDB *sql.DB
@@ -51,7 +51,7 @@ func (user *User) CreateUser() (int64, error) {
 }
 func (user *User) CheckIfExist()(bool, error){
 	//query := "SELECT * FROM user WHERE user.UserName= ? OR user.Email= ?"
-	query := "SELECT id FROM user WHERE UserName = (?) OR Email = (?)"
+	query := "SELECT id FROM user WHERE UserName = (?) OR Email = (?) LIMIT 1"
 	rows, err := SqlDB.Query(query,user.Username,user.Email)
 	if err != nil {
 		return false, err
@@ -81,5 +81,31 @@ func (user *User) DeleteUser() (int64, error) {
 }
 
 func (user *User) LoginUser()(int64, error){
-
+	query := ""
+	var rows *sql.Rows
+	var err error
+	if user.Username != "" && user.Email == ""{
+		query = "SELECT id,Password FROM user WHERE UserName = (?) LIMIT 1"
+		rows, err = SqlDB.Query(query,user.Username)
+	} else if user.Email != "" && user.Username == "" {
+		query = "SELECT id,Password FROM user WHERE Email = (?) LIMIT 1"
+		rows, err = SqlDB.Query(query,user.Email)
+	}else{
+		return -1, errors.New("username and email must not both be filled")
+	}
+	if err != nil {
+		return -1, err
+	}
+	var id,hashedPassword string
+	for rows.Next() {
+		err = rows.Scan(&id,&hashedPassword)
+		if err != nil {
+			return -1, err
+		}
+	}
+	if hashedPassword == "" || id == "" {
+		return -1, errors.New("username/email or password doesn't exist")
+	}
+	idInt64,_ := strconv.ParseInt(id, 10, 64)
+	return idInt64,user.CheckPassword(hashedPassword)
 }

@@ -3,32 +3,18 @@ package main
 import (
 	"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-
 )
-
 func Authenticator(c *gin.Context) (i interface{}, err error) {
 	var loginValues User
 	if err := c.ShouldBind(&loginValues); err != nil {
 		return "", jwt.ErrMissingLoginValues
 	}
-	username := loginValues.Username
-	password := loginValues.Password
-	email := loginValues.Email
 
-	payload , err := AuthorizeLogin(loginValues)
-	if err != nil {
-		return nil,err
-	}
-	return payload , nil
-	if (username == "test" && password == "password") || (email == "test@qq.com" && password == "password") {
-		return &UserPayLoad{
-			UserName: username,
-			id:       "123",
-			Email:    "test@qq.com",
-		}, nil
-	}
-
-	return nil, jwt.ErrFailedAuthentication
+	return AuthorizeLogin(&loginValues)
+	//if err != nil {
+	//	return nil,err
+	//}
+	//return payload , nil
 }
 func PayloadFunc(data interface{}) jwt.MapClaims {
 	return jwt.MapClaims {
