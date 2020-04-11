@@ -7,7 +7,7 @@ import (
 )
 
 func Authenticator(c *gin.Context) (i interface{}, err error) {
-	var loginValues Login
+	var loginValues User
 	if err := c.ShouldBind(&loginValues); err != nil {
 		return "", jwt.ErrMissingLoginValues
 	}

@@ -45,4 +45,5 @@ func main() {
 
 	}
 	log.Fatal(r.Run(GlobalConfig.Port))
+	SqlDB.Close()
 }

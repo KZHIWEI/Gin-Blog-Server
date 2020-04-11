@@ -6,8 +6,16 @@ import (
 	"testing"
 )
 
+var demoUser = User{
+Username: "demo",
+Password: "password1",
+Email:    "demo@demo.com",
+}
 func initTest(){
-
+	_, err := demoUser.DeleteUser()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func TestMain(m *testing.M) {
@@ -22,14 +30,13 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func TestCreateUser(t *testing.T){
+	_ ,err := demoUser.CreateUser()
+	assert.Nil(t,err)
+}
 
-func TestDuplicateUser(t *testing.T) {
-	reg := Register{
-		Username: "demo",
-		Password: "password",
-		Email:    "demo@demo.com",
-	}
-	id ,err := reg.CreateUser()
-	assert.Error(t,err)
-	assert.Equal(t,id,-1)
+func TestDeduplicateUser(t *testing.T) {
+	id ,err := demoUser.CreateUser()
+	assert.Equal(t,"user already exist",err.Error())
+	assert.EqualValues(t,id,-1)
 }

@@ -2,7 +2,7 @@ package main
 
 import "errors"
 
-func AuthorizeLogin(loginValues Login) (interface{} , error){
+func AuthorizeLogin(loginValues User) (interface{} , error){
 	if loginValues.Email == "" && loginValues.Username == "" {
 		return nil , errors.New("email or username can not be empty")
 	}
