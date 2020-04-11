@@ -9,12 +9,7 @@ func Authenticator(c *gin.Context) (i interface{}, err error) {
 	if err := c.ShouldBind(&loginValues); err != nil {
 		return "", jwt.ErrMissingLoginValues
 	}
-
 	return AuthorizeLogin(&loginValues)
-	//if err != nil {
-	//	return nil,err
-	//}
-	//return payload , nil
 }
 func PayloadFunc(data interface{}) jwt.MapClaims {
 	return jwt.MapClaims {
@@ -38,8 +33,6 @@ func AuthMiddleware(key string) (*jwt.GinJWTMiddleware, error) {
 		TokenHeadName:         "",
 		TimeFunc:              nil,
 		HTTPStatusMessageFunc: nil,
-		PrivKeyFile:           "",
-		PubKeyFile:            "",
 		SendCookie:            false,
 		SecureCookie:          false,
 		CookieHTTPOnly:        false,
