@@ -35,24 +35,24 @@ func HandleSQLResponse(rs sql.Result, err error) (int64, error) {
 	return id, nil
 }
 func (user *User) CreateUser() (int64, error) {
-	if exist , err := user.CheckIfExist();!exist {
+	if exist, err := user.CheckIfExist(); !exist {
 		if err != nil {
-			return -1,err
+			return -1, err
 		}
 		query := `INSERT IGNORE  user (UserName, Password, Email) VALUES (?,?,?)`
-		hashedPassword , err := user.GetHashPassword()
+		hashedPassword, err := user.GetHashPassword()
 		if err != nil {
-			return -1 ,err
+			return -1, err
 		}
 		rs, err := SqlDB.Exec(query, user.Username, hashedPassword, user.Email)
 		return HandleSQLResponse(rs, err)
 	}
-	return -1 , errors.New("user already exist")
+	return -1, errors.New("user already exist")
 }
-func (user *User) CheckIfExist()(bool, error){
+func (user *User) CheckIfExist() (bool, error) {
 	//query := "SELECT * FROM user WHERE user.UserName= ? OR user.Email= ?"
 	query := "SELECT id FROM user WHERE UserName = (?) OR Email = (?) LIMIT 1"
-	rows, err := SqlDB.Query(query,user.Username,user.Email)
+	rows, err := SqlDB.Query(query, user.Username, user.Email)
 	if err != nil {
 		return false, err
 	}
@@ -64,9 +64,9 @@ func (user *User) CheckIfExist()(bool, error){
 		}
 	}
 	if result != "" {
-		return true ,rows.Close()
+		return true, rows.Close()
 	}
-	return false ,rows.Close()
+	return false, rows.Close()
 }
 
 func (user *User) DeleteUser() (int64, error) {
@@ -80,25 +80,25 @@ func (user *User) DeleteUser() (int64, error) {
 	return -1, errors.New("empty username or email")
 }
 
-func (user *User) LoginUser()(int64, error){
+func (user *User) LoginUser() (int64, error) {
 	query := ""
 	var rows *sql.Rows
 	var err error
-	if user.Username != "" && user.Email == ""{
+	if user.Username != "" && user.Email == "" {
 		query = "SELECT id,Password FROM user WHERE UserName = (?) LIMIT 1"
-		rows, err = SqlDB.Query(query,user.Username)
+		rows, err = SqlDB.Query(query, user.Username)
 	} else if user.Email != "" && user.Username == "" {
 		query = "SELECT id,Password FROM user WHERE Email = (?) LIMIT 1"
-		rows, err = SqlDB.Query(query,user.Email)
-	}else{
+		rows, err = SqlDB.Query(query, user.Email)
+	} else {
 		return -1, errors.New("username and email must not both be filled")
 	}
 	if err != nil {
 		return -1, err
 	}
-	var id,hashedPassword string
+	var id, hashedPassword string
 	for rows.Next() {
-		err = rows.Scan(&id,&hashedPassword)
+		err = rows.Scan(&id, &hashedPassword)
 		if err != nil {
 			return -1, err
 		}
@@ -106,6 +106,20 @@ func (user *User) LoginUser()(int64, error){
 	if hashedPassword == "" || id == "" {
 		return -1, errors.New("username/email or password doesn't exist")
 	}
-	idInt64,_ := strconv.ParseInt(id, 10, 64)
-	return idInt64,user.CheckPassword(hashedPassword)
+	idInt64, _ := strconv.ParseInt(id, 10, 64)
+	return idInt64, user.CheckPassword(hashedPassword)
+}
+
+func (user *User) StoreToken(token string) (int64, error) {
+	query := ""
+	fmt.Println(token)
+	if user.Username != "" && user.Email == "" {
+		query = "UPDATE user SET user.Token = ? WHERE UserName = ?"
+		return HandleSQLResponse(SqlDB.Exec(query, token, user.Username))
+	} else if user.Email != "" && user.Username == "" {
+		query = "UPDATE user SET user.Token = ? WHERE Email = ?"
+		return HandleSQLResponse(SqlDB.Exec(query, token, user.Email))
+	} else {
+		return -1, errors.New("username and email must not both be filled")
+	}
 }

@@ -60,8 +60,18 @@ func ResponseError(c *gin.Context, err error) {
 }
 
 func LoginResponse(c *gin.Context, i int, token string, expire time.Time) {
+	user, exist := c.Get("user")
+	if !exist {
+		ResponseError(c, errors.New("user does not store"))
+		return
+	}
+	_, err := user.(*User).StoreToken(token)
+	if err != nil {
+		ResponseError(c, err)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
+		"code":    i,
 		"expire":  expire.Format(time.RFC3339),
 		"token":   token,
 		"message": "successful login",

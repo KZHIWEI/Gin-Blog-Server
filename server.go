@@ -14,17 +14,17 @@ func LoadEnv() {
 		return
 	}
 	GlobalConfig = Config{
-		JwtToken:  os.Getenv("JWT-TOKEN"),
-		DbAddress: os.Getenv("DB-Address"),
-		Port:      os.Getenv("PORT"),
+		JwtToken:   os.Getenv("JWT-TOKEN"),
+		DbAddress:  os.Getenv("DB-Address"),
+		Port:       os.Getenv("PORT"),
 		DbPassword: os.Getenv("DB-PASSWORD"),
 	}
 }
 
 type Config struct {
-	JwtToken  string
-	DbAddress string
-	Port      string
+	JwtToken   string
+	DbAddress  string
+	Port       string
 	DbPassword string
 }
 
@@ -32,8 +32,9 @@ var GlobalConfig Config
 
 func main() {
 	LoadEnv()
-	if err := initSQL();err != nil{
-		panic(err.Error())
+	if err := initSQL(); err != nil {
+		log.Fatal("Not able to connect SQL server")
+		return
 	}
 	r := gin.Default()
 	auth, err := AuthMiddleware(GlobalConfig.JwtToken)
