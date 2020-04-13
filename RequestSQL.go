@@ -112,7 +112,6 @@ func (user *User) LoginUser() (int64, error) {
 
 func (user *User) StoreToken(token string) (int64, error) {
 	query := ""
-	fmt.Println(token)
 	if user.Username != "" && user.Email == "" {
 		query = "UPDATE user SET user.Token = ? WHERE UserName = ?"
 		return HandleSQLResponse(SqlDB.Exec(query, token, user.Username))
@@ -122,4 +121,9 @@ func (user *User) StoreToken(token string) (int64, error) {
 	} else {
 		return -1, errors.New("username and email must not both be filled")
 	}
+}
+
+func (user *UserAuth) Logout()(int64, error) {
+	query := "UPDATE user SET user.Token = '' WHERE id = ?"
+	return HandleSQLResponse(SqlDB.Exec(query, user.Id))
 }

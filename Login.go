@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -17,6 +18,9 @@ func AuthorizeLogin(user *User) (*UserPayLoad, error) {
 	id64, err := user.LoginUser()
 	if err != nil {
 		return nil, err
+	}
+	if id64 != -1 && id64 != 0 {
+		user.Id = int(id64)
 	}
 	return &UserPayLoad{
 		id:       int(id64),
@@ -72,8 +76,38 @@ func LoginResponse(c *gin.Context, i int, token string, expire time.Time) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code":    i,
+		"id" : user.(*User).Id,
 		"expire":  expire.Format(time.RFC3339),
 		"token":   token,
 		"message": "successful login",
 	})
 }
+
+func LogoutResponse(c *gin.Context,i int){
+	claimsV,exist := c.Get("JWT_PAYLOAD")
+	claimsId := int(claimsV.(jwt.MapClaims)["id"].(float64))
+	if !exist {
+		ResponseError(c,errors.New("no jwt token"))
+		return
+	}
+	var user UserAuth
+	if err := c.ShouldBind(&user); err != nil {
+		ResponseError(c,err)
+		return
+	}
+	if user.Id == claimsId {
+		_,err:= user.Logout()
+		if err != nil {
+			ResponseError(c,err)
+			return
+		}
+		c.JSON(i,gin.H{
+			"message":"successful logout",
+		})
+		return
+	}
+	c.JSON(http.StatusUnauthorized,gin.H{
+		"message":"id does not match",
+	})
+}
+

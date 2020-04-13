@@ -16,9 +16,14 @@ type UserPayLoad struct {
 var validate *validator.Validate
 
 type User struct {
+	Id       int	`form:"id" json:"id" `
 	Username string `form:"username" json:"username" `
 	Password string `form:"password" json:"password" binding:"required"`
 	Email    string `form:"email" json:"email"`
+}
+
+type UserAuth struct {
+	Id int `form:"id" json:"id" binding:"required"`
 }
 
 func (user User) String() string {

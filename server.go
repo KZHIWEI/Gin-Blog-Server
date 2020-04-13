@@ -36,18 +36,21 @@ func main() {
 		log.Fatal("Not able to connect SQL server")
 		return
 	}
+	defer SqlDB.Close()
 	r := gin.Default()
 	auth, err := AuthMiddleware(GlobalConfig.JwtToken)
 	if err != nil {
 		panic(err.Error())
 	}
-	r.POST("/login", auth.LoginHandler)
-	r.POST("/register", RegisterHandler)
 	api := r.Group("/api")
-	api.Use(auth.MiddlewareFunc())
 	{
-
+		api.POST("/login", auth.LoginHandler)
+		api.POST("/register", RegisterHandler)
+	}
+	authGroup := api.Group("/auth")
+	authGroup.Use(auth.MiddlewareFunc())
+	{
+		authGroup.POST("/logout",auth.LogoutHandler)
 	}
 	log.Fatal(r.Run(GlobalConfig.Port))
-	SqlDB.Close()
 }
