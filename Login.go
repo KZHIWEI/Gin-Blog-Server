@@ -5,6 +5,7 @@ import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -76,38 +77,117 @@ func LoginResponse(c *gin.Context, i int, token string, expire time.Time) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code":    i,
-		"id" : user.(*User).Id,
+		"id":      user.(*User).Id,
 		"expire":  expire.Format(time.RFC3339),
 		"token":   token,
 		"message": "successful login",
 	})
 }
+func GetTokenFromContext(c *gin.Context) (string,error) {
+	authHeader := c.Request.Header.Get("Authorization")
+	if authHeader == "" {
+		return "", jwt.ErrEmptyAuthHeader
+	}
 
-func LogoutResponse(c *gin.Context,i int){
-	claimsV,exist := c.Get("JWT_PAYLOAD")
-	claimsId := int(claimsV.(jwt.MapClaims)["id"].(float64))
-	if !exist {
-		ResponseError(c,errors.New("no jwt token"))
+	parts := strings.SplitN(authHeader, " ", 2)
+	if !(len(parts) == 2 && parts[0] == "Bearer") {
+		return "", jwt.ErrInvalidAuthHeader
+	}
+	return parts[1], nil
+}
+//func LogoutResponse(c *gin.Context, i int) {
+//	claimsV, exist := c.Get("JWT_PAYLOAD")
+//	claimsId := int(claimsV.(jwt.MapClaims)["id"].(float64))
+//	if !exist {
+//		ResponseError(c, errors.New("no jwt id"))
+//		return
+//	}
+//	var user User
+//	if err := c.ShouldBind(&user); err != nil {
+//		ResponseError(c, err)
+//		return
+//	}
+//	if user.Id == claimsId {
+//		token,err := GetTokenFromContext(c)
+//		if err != nil {
+//			ResponseError(c, err)
+//			return
+//		}
+//		userToken,err := user.GetToken()
+//		if err != nil {
+//			ResponseError(c, err)
+//			return
+//		}
+//		_, err = user.Logout()
+//		if err != nil {
+//			ResponseError(c, err)
+//			return
+//		}
+//		if userToken != token {
+//			ResponseError(c, errors.New("token does not match"))
+//			return
+//		}
+//		c.JSON(i, gin.H{
+//			"message": "successful logout",
+//		})
+//		return
+//	}
+//	c.JSON(http.StatusUnauthorized, gin.H{
+//		"message": "id does not match",
+//	})
+//}
+func LogoutHandler(c *gin.Context) {
+	userR,exist := c.Get("user")
+	if !exist{
+		ResponseError(c,errors.New("user does not exist"))
 		return
 	}
-	var user UserAuth
-	if err := c.ShouldBind(&user); err != nil {
+	user := userR.(*User)
+	_,err :=user.Logout()
+	if err != nil {
 		ResponseError(c,err)
 		return
 	}
-	if user.Id == claimsId {
-		_,err:= user.Logout()
-		if err != nil {
-			ResponseError(c,err)
-			return
-		}
-		c.JSON(i,gin.H{
-			"message":"successful logout",
-		})
-		return
-	}
-	c.JSON(http.StatusUnauthorized,gin.H{
-		"message":"id does not match",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "successful log out",
 	})
 }
+func Authorizator(data interface{}, c *gin.Context) bool{
+	jwtPayloadValue,exists := c.Get("JWT_PAYLOAD")
+	if !exists {
+		return false
+	}
+	jwtPayload := jwtPayloadValue.(jwt.MapClaims)
+	var user User
+	if err := c.ShouldBind(&user); err != nil {
+		return false
+	}
+	c.Set("user",&user)
+	payloadId := int(jwtPayload["id"].(float64))
+	if user.Id == payloadId {
+		token,err := GetTokenFromContext(c)
+		if err != nil {
+			return false
+		}
+		userToken,err := user.GetToken()
+		if err != nil {
+			return false
+		}
+		if userToken == "" {
+			if c.Request.URL.Path == "/api/auth/logout" {
+				return true
+			}
+		}
+		if userToken == token {
+			return true
+		}
+		return false
+	}
+	return false
+}
 
+func TestTokenHandler(c *gin.Context) {
+	c.JSON(http.StatusOK,gin.H{
+		"message":"valid token",
+	})
+}

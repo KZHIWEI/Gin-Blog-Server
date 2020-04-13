@@ -50,7 +50,8 @@ func main() {
 	authGroup := api.Group("/auth")
 	authGroup.Use(auth.MiddlewareFunc())
 	{
-		authGroup.POST("/logout",auth.LogoutHandler)
+		authGroup.POST("/logout", LogoutHandler)
+		authGroup.POST("/test-token", TestTokenHandler)
 	}
 	log.Fatal(r.Run(GlobalConfig.Port))
 }

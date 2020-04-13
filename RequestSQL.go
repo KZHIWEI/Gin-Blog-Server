@@ -123,7 +123,33 @@ func (user *User) StoreToken(token string) (int64, error) {
 	}
 }
 
-func (user *UserAuth) Logout()(int64, error) {
+func (user *User) Logout() (int64, error) {
+	if user.Id == 0 {
+		return -1, errors.New("id does not find")
+	}
 	query := "UPDATE user SET user.Token = '' WHERE id = ?"
 	return HandleSQLResponse(SqlDB.Exec(query, user.Id))
+}
+
+func (user *User) GetToken() (string, error) {
+	query := ""
+	result := ""
+	if user.Id != 0 {
+		query = "SELECT Token FROM user WHERE id = ? LIMIT 1"
+		rows, err := SqlDB.Query(query, user.Id)
+		if err != nil {
+			return "", err
+		}
+		for rows.Next() {
+			err = rows.Scan(&result)
+			if err != nil {
+				return "", err
+			}
+		}
+		if result != "" {
+			return result, rows.Close()
+		}
+		return "", rows.Close()
+	}
+	return "", errors.New("id does not match")
 }
