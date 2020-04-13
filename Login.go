@@ -4,6 +4,7 @@ import (
 	"errors"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"net/http"
 	"strings"
 	"time"
@@ -32,7 +33,7 @@ func AuthorizeLogin(user *User) (*UserPayLoad, error) {
 
 func RegisterHandler(c *gin.Context) {
 	var registerUser User
-	err := c.BindJSON(&registerUser)
+	err := c.ShouldBindBodyWith(&registerUser,binding.JSON)
 	if err != nil {
 		ResponseError(c, err)
 		return
@@ -95,47 +96,6 @@ func GetTokenFromContext(c *gin.Context) (string,error) {
 	}
 	return parts[1], nil
 }
-//func LogoutResponse(c *gin.Context, i int) {
-//	claimsV, exist := c.Get("JWT_PAYLOAD")
-//	claimsId := int(claimsV.(jwt.MapClaims)["id"].(float64))
-//	if !exist {
-//		ResponseError(c, errors.New("no jwt id"))
-//		return
-//	}
-//	var user User
-//	if err := c.ShouldBind(&user); err != nil {
-//		ResponseError(c, err)
-//		return
-//	}
-//	if user.Id == claimsId {
-//		token,err := GetTokenFromContext(c)
-//		if err != nil {
-//			ResponseError(c, err)
-//			return
-//		}
-//		userToken,err := user.GetToken()
-//		if err != nil {
-//			ResponseError(c, err)
-//			return
-//		}
-//		_, err = user.Logout()
-//		if err != nil {
-//			ResponseError(c, err)
-//			return
-//		}
-//		if userToken != token {
-//			ResponseError(c, errors.New("token does not match"))
-//			return
-//		}
-//		c.JSON(i, gin.H{
-//			"message": "successful logout",
-//		})
-//		return
-//	}
-//	c.JSON(http.StatusUnauthorized, gin.H{
-//		"message": "id does not match",
-//	})
-//}
 func LogoutHandler(c *gin.Context) {
 	userR,exist := c.Get("user")
 	if !exist{
@@ -159,7 +119,7 @@ func Authorizator(data interface{}, c *gin.Context) bool{
 	}
 	jwtPayload := jwtPayloadValue.(jwt.MapClaims)
 	var user User
-	if err := c.ShouldBind(&user); err != nil {
+	if err := c.ShouldBindBodyWith(&user,binding.JSON); err != nil {
 		return false
 	}
 	c.Set("user",&user)

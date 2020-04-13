@@ -3,12 +3,13 @@ package main
 import (
 	"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"time"
 )
 
 func Authenticator(c *gin.Context) (i interface{}, err error) {
 	var loginValues User
-	if err := c.ShouldBind(&loginValues); err != nil {
+	if err := c.ShouldBindBodyWith(&loginValues,binding.JSON); err != nil {
 		return "", jwt.ErrMissingLoginValues
 	}
 	c.Set("user", &loginValues)
