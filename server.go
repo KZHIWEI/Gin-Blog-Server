@@ -18,6 +18,8 @@ func LoadEnv() {
 		DbAddress:  os.Getenv("DB-Address"),
 		Port:       os.Getenv("PORT"),
 		DbPassword: os.Getenv("DB-PASSWORD"),
+		URL:        os.Getenv("BASE-URL") + os.Getenv("PORT"),
+		ImageDir :  os.Getenv("IMAGE-DIR"),
 	}
 }
 
@@ -26,6 +28,8 @@ type Config struct {
 	DbAddress  string
 	Port       string
 	DbPassword string
+	URL        string
+	ImageDir   string
 }
 
 var GlobalConfig Config
@@ -52,6 +56,8 @@ func main() {
 	{
 		authGroup.POST("/logout", LogoutHandler)
 		authGroup.POST("/test-token", TestTokenHandler)
+		authGroup.POST("/upload-image", ImageUploadHandler)
+		authGroup.POST("/upload-multiple-image", MultiImageUploadHandler)
 	}
 	log.Fatal(r.Run(GlobalConfig.Port))
 }

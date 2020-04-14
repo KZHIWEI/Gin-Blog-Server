@@ -9,7 +9,7 @@ import (
 
 func Authenticator(c *gin.Context) (i interface{}, err error) {
 	var loginValues User
-	if err := c.ShouldBindBodyWith(&loginValues,binding.JSON); err != nil {
+	if err := c.ShouldBindBodyWith(&loginValues, binding.JSON); err != nil {
 		return "", jwt.ErrMissingLoginValues
 	}
 	c.Set("user", &loginValues)

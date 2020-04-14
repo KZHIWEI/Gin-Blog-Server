@@ -50,7 +50,6 @@ func (user *User) CreateUser() (int64, error) {
 	return -1, errors.New("user already exist")
 }
 func (user *User) CheckIfExist() (bool, error) {
-	//query := "SELECT * FROM user WHERE user.UserName= ? OR user.Email= ?"
 	query := "SELECT id FROM user WHERE UserName = (?) OR Email = (?) LIMIT 1"
 	rows, err := SqlDB.Query(query, user.Username, user.Email)
 	if err != nil {

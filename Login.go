@@ -1,11 +1,18 @@
 package main
 
 import (
+	"crypto/md5"
 	"errors"
+	"fmt"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"io"
+	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -33,7 +40,7 @@ func AuthorizeLogin(user *User) (*UserPayLoad, error) {
 
 func RegisterHandler(c *gin.Context) {
 	var registerUser User
-	err := c.ShouldBindBodyWith(&registerUser,binding.JSON)
+	err := c.ShouldBindBodyWith(&registerUser, binding.JSON)
 	if err != nil {
 		ResponseError(c, err)
 		return
@@ -84,7 +91,7 @@ func LoginResponse(c *gin.Context, i int, token string, expire time.Time) {
 		"message": "successful login",
 	})
 }
-func GetTokenFromContext(c *gin.Context) (string,error) {
+func GetTokenFromContext(c *gin.Context) (string, error) {
 	authHeader := c.Request.Header.Get("Authorization")
 	if authHeader == "" {
 		return "", jwt.ErrEmptyAuthHeader
@@ -97,39 +104,37 @@ func GetTokenFromContext(c *gin.Context) (string,error) {
 	return parts[1], nil
 }
 func LogoutHandler(c *gin.Context) {
-	userR,exist := c.Get("user")
-	if !exist{
-		ResponseError(c,errors.New("user does not exist"))
+	userR, exist := c.Get("user")
+	if !exist {
+		ResponseError(c, errors.New("user does not exist"))
 		return
 	}
 	user := userR.(*User)
-	_,err :=user.Logout()
+	_, err := user.Logout()
 	if err != nil {
-		ResponseError(c,err)
+		ResponseError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "successful log out",
 	})
 }
-func Authorizator(data interface{}, c *gin.Context) bool{
-	jwtPayloadValue,exists := c.Get("JWT_PAYLOAD")
+func Authorizator(data interface{}, c *gin.Context) bool {
+	jwtPayloadValue, exists := c.Get("JWT_PAYLOAD")
 	if !exists {
 		return false
 	}
 	jwtPayload := jwtPayloadValue.(jwt.MapClaims)
-	var user User
-	if err := c.ShouldBindBodyWith(&user,binding.JSON); err != nil {
-		return false
-	}
-	c.Set("user",&user)
 	payloadId := int(jwtPayload["id"].(float64))
-	if user.Id == payloadId {
-		token,err := GetTokenFromContext(c)
+	if payloadId != 0 {
+		token, err := GetTokenFromContext(c)
 		if err != nil {
 			return false
 		}
-		userToken,err := user.GetToken()
+		var user = User{
+			Id: payloadId,
+		}
+		userToken, err := user.GetToken()
 		if err != nil {
 			return false
 		}
@@ -147,7 +152,73 @@ func Authorizator(data interface{}, c *gin.Context) bool{
 }
 
 func TestTokenHandler(c *gin.Context) {
-	c.JSON(http.StatusOK,gin.H{
-		"message":"valid token",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "valid token",
 	})
+}
+
+func MD5(name string) string{
+	name = name + time.Now().String()
+	return fmt.Sprintf("%x", md5.Sum([]byte(name)))
+}
+
+func MkdirIfNotExist() error {
+	if _, err := os.Stat(GlobalConfig.ImageDir); os.IsNotExist(err) {
+		err := os.Mkdir(GlobalConfig.ImageDir,0755)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func StoreImage(file *multipart.FileHeader) (string,error){
+	filename := file.Filename
+	err := MkdirIfNotExist()
+	if err != nil {
+		return "",err
+	}
+	storeName := GlobalConfig.ImageDir + MD5(filename) + filepath.Ext(filename)
+	out, err := os.Create(storeName)
+	defer out.Close()
+	if err != nil {
+		return "",err
+	}
+	incoming,_ :=file.Open()
+	_, err = io.Copy(out, incoming)
+	if err != nil {
+		return "",err
+	}
+	return MD5(filename) + filepath.Ext(filename),nil
+}
+
+func ImageUploadHandler(c *gin.Context) {
+	file, err := c.FormFile("image")
+	if err != nil {
+		ResponseError(c, err)
+		return
+	}
+	name,err:=StoreImage(file)
+	if err != nil {
+		ResponseError(c, err)
+		return
+	}
+	c.JSON(200,gin.H{
+		"message":"successful upload image",
+		"url": GlobalConfig.URL + "/image/" +name,
+	})
+}
+
+func MultiImageUploadHandler(c *gin.Context) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		ResponseError(c, err)
+	}
+	files := form.File["upload[]"]
+	for _, file := range files {
+		log.Println(file.Filename)
+
+		// Upload the file to specific dst.
+		// c.SaveUploadedFile(file, dst)
+	}
+	c.String(http.StatusOK, fmt.Sprintf("%d files uploaded!", len(files)))
 }
