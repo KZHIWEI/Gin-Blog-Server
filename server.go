@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -46,7 +47,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	r.GET("/image/:filename", ImageHandler)
+	r.StaticFS("/image/", http.Dir("images"))
 	api := r.Group("/api")
 	{
 		api.POST("/login", auth.LoginHandler)

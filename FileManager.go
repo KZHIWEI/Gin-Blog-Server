@@ -33,7 +33,8 @@ func StoreImage(file *multipart.FileHeader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	storeName := GlobalConfig.ImageDir + MD5(filename) + filepath.Ext(filename)
+	md5FileName := MD5(filename)
+	storeName := GlobalConfig.ImageDir + md5FileName + filepath.Ext(filename)
 	out, err := os.Create(storeName)
 	defer out.Close()
 	if err != nil {
@@ -44,7 +45,7 @@ func StoreImage(file *multipart.FileHeader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return MD5(filename) + filepath.Ext(filename), nil
+	return md5FileName + filepath.Ext(filename), nil
 }
 
 func ImageUploadHandler(c *gin.Context) {
