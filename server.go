@@ -19,7 +19,7 @@ func LoadEnv() {
 		Port:       os.Getenv("PORT"),
 		DbPassword: os.Getenv("DB-PASSWORD"),
 		URL:        os.Getenv("BASE-URL") + os.Getenv("PORT"),
-		ImageDir :  os.Getenv("IMAGE-DIR"),
+		ImageDir:   os.Getenv("IMAGE-DIR"),
 	}
 }
 
@@ -46,6 +46,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+	r.GET("/image/:filename", ImageHandler)
 	api := r.Group("/api")
 	{
 		api.POST("/login", auth.LoginHandler)
