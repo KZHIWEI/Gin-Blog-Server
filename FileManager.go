@@ -71,16 +71,19 @@ func ImageUploadHandler(c *gin.Context) {
 }
 
 func ValidImageFormat(ext string)bool {
+	fmt.Println(strings.ToLower(ext))
 	switch strings.ToLower(ext) {
 	case ".jpg":
+		return true
 	case ".jpeg":
+		return true
 	case ".gif":
+		return true
 	case ".png":
 		return true
 	default:
 		return false
 	}
-	return false
 }
 
 func MultiImageUploadHandler(c *gin.Context) {
