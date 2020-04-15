@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -32,6 +34,9 @@ func StoreImage(file *multipart.FileHeader) (string, error) {
 	err := MkdirIfNotExist()
 	if err != nil {
 		return "", err
+	}
+	if !ValidImageFormat( filepath.Ext(filename)) {
+		return "", errors.New("file is not a image type")
 	}
 	md5FileName := MD5(filename)
 	storeName := GlobalConfig.ImageDir + md5FileName + filepath.Ext(filename)
@@ -63,6 +68,19 @@ func ImageUploadHandler(c *gin.Context) {
 		"message": "successful upload image",
 		"url":     GlobalConfig.URL + "/image/" + name,
 	})
+}
+
+func ValidImageFormat(ext string)bool {
+	switch strings.ToLower(ext) {
+	case ".jpg":
+	case ".jpeg":
+	case ".gif":
+	case ".png":
+		return true
+	default:
+		return false
+	}
+	return false
 }
 
 func MultiImageUploadHandler(c *gin.Context) {
