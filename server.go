@@ -59,6 +59,7 @@ func main() {
 		authGroup.POST("/logout", LogoutHandler)
 		authGroup.POST("/test-token", TestTokenHandler)
 		authGroup.POST("/upload-image", ImageUploadHandler)
+		authGroup.POST("/posts",NewPostsHandler)
 		//authGroup.POST("/upload-multiple-image", MultiImageUploadHandler)
 	}
 	log.Fatal(r.Run(GlobalConfig.Port))
