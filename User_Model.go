@@ -118,9 +118,11 @@ func (user *User) LoginUser() (int64, error) {
 	if user.Username != "" && user.Email == "" {
 		query = "SELECT id,Password FROM user WHERE UserName = (?) LIMIT 1"
 		rows, err = SqlDB.Query(query, user.Username)
+		defer rows.Close()
 	} else if user.Email != "" && user.Username == "" {
 		query = "SELECT id,Password FROM user WHERE Email = (?) LIMIT 1"
 		rows, err = SqlDB.Query(query, user.Email)
+		defer rows.Close()
 	} else {
 		return -1, errors.New("username and email must not both be filled")
 	}

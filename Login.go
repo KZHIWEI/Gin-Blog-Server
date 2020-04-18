@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -83,18 +82,6 @@ func LoginResponse(c *gin.Context, i int, token string, expire time.Time) {
 		"token":   token,
 		"message": "successful login",
 	})
-}
-func GetTokenFromContext(c *gin.Context) (string, error) {
-	authHeader := c.Request.Header.Get("Authorization")
-	if authHeader == "" {
-		return "", jwt.ErrEmptyAuthHeader
-	}
-
-	parts := strings.SplitN(authHeader, " ", 2)
-	if !(len(parts) == 2 && parts[0] == "Bearer") {
-		return "", jwt.ErrInvalidAuthHeader
-	}
-	return parts[1], nil
 }
 func LogoutHandler(c *gin.Context) {
 	userR, exist := c.Get("user")

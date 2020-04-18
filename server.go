@@ -48,6 +48,7 @@ func main() {
 		panic(err.Error())
 	}
 	r.StaticFS("/image/", http.Dir("images"))
+	r.GET("/post/:id",ViewPostHandler)
 	api := r.Group("/api")
 	{
 		api.POST("/login", auth.LoginHandler)
@@ -59,7 +60,7 @@ func main() {
 		authGroup.POST("/logout", LogoutHandler)
 		authGroup.POST("/test-token", TestTokenHandler)
 		authGroup.POST("/upload-image", ImageUploadHandler)
-		authGroup.POST("/posts", NewPostsHandler)
+		authGroup.POST("/create-posts", NewPostsHandler)
 		//authGroup.POST("/upload-multiple-image", MultiImageUploadHandler)
 	}
 	log.Fatal(r.Run(GlobalConfig.Port))
