@@ -23,23 +23,17 @@ func NewPostsHandler(c *gin.Context) {
 }
 
 func ViewPostHandler(c *gin.Context)  {
-	//claims,err := GetClaims(c)
-	//var id int
-	//if err== nil {
-	//	id = claims["id"].(int)
-	//}
 	postId := c.Param("id")
-	maps,err:=ViewPost(postId)
+	post,err:=ViewPost(postId)
 	if err != nil {
 		ResponseError(c,err)
 		return
 	}
 	c.JSON(http.StatusOK,gin.H{
-		"id":maps["id"],
-		"title":maps["title"],
-		"content":maps["content"],
-		"images":maps["images"],
-		"date":maps["date"],
+		"id":post.Id,
+		"title":post.Title,
+		"content":post.Content,
+		"images":post.ImagesUrl,
+		"date":post.PostDate,
 	})
-
 }

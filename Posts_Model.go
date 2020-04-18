@@ -6,9 +6,11 @@ import (
 )
 
 type Post struct {
+	Id        string   `json:"idPosts"`
 	Title     string   `json:"title"`
 	Content   string   `json:"content"`
 	ImagesUrl []string `json:"images"`
+	PostDate  string   `json:"date"`
 }
 
 func (post *Post) Create() (int64, error){
@@ -18,11 +20,12 @@ func (post *Post) Create() (int64, error){
 	return HandleSQLResponse(rs, err)
 }
 
-func ViewPost(id string) (map[string]string,error) {
+func ViewPost(id string) (Post,error) {
 	query := "SELECT idPosts,Title,Content,Images,PostDate from posts where idPosts = ?"
 	rows,err:=SqlDB.Query(query, id)
+	var post Post
 	if err != nil {
-		return nil, err
+		return post, err
 	}
 	idPost := ""
 	title := ""
@@ -32,20 +35,19 @@ func ViewPost(id string) (map[string]string,error) {
 	for rows.Next() {
 		err = rows.Scan(&idPost,&title,&content,&images,&postDate)
 		if err != nil {
-			return nil, err
+			return post, err
 		}
 		break
 	}
 	if idPost == "" {
 		rows.Close()
-		return nil, errors.New("post does not exist")
+		return post, errors.New("post does not exist")
 	}
-	maps := make(map[string]string)
-	maps["id"] = idPost
-	maps["title"] = title
-	maps["content"] = content
-	maps["images"] = images
-	maps["date"] = postDate
-	return maps,rows.Close()
+	post.Id = idPost
+	post.Title = title
+	post.Content = content
+	_ = json.Unmarshal([]byte(images), &post.ImagesUrl)
+	post.PostDate = postDate
+	return post,rows.Close()
 
 }
