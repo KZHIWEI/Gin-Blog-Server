@@ -35,7 +35,7 @@ func StoreImage(file *multipart.FileHeader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if !ValidImageFormat( filepath.Ext(filename)) {
+	if !ValidImageFormat(filepath.Ext(filename)) {
 		return "", errors.New("file is not a image type")
 	}
 	md5FileName := MD5(filename)
@@ -70,7 +70,7 @@ func ImageUploadHandler(c *gin.Context) {
 	})
 }
 
-func ValidImageFormat(ext string)bool {
+func ValidImageFormat(ext string) bool {
 	fmt.Println(strings.ToLower(ext))
 	switch strings.ToLower(ext) {
 	case ".jpg":
