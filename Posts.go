@@ -37,7 +37,7 @@ func ViewPostHandler(c *gin.Context)  {
 	c.JSON(http.StatusOK,gin.H{
 		"id":maps["id"],
 		"title":maps["title"],
-		"content":maps["context"],
+		"content":maps["content"],
 		"images":maps["images"],
 		"date":maps["date"],
 	})
